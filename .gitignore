@@ -1,0 +1,10 @@
+# Java
+bin/
+*.class
+
+# Build files
+target/
+build/
+
+# Local VS Code configuration
+.vscode/
