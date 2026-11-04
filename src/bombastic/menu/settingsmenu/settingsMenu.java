@@ -1,5 +1,5 @@
 package bombastic.menu.settingsmenu;
 
-public class settingsMenu {
-    
+public class SettingsMenu {
+
 }
