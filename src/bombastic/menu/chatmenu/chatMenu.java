@@ -5,7 +5,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -13,55 +13,49 @@ public class ChatMenu extends VBox {
 
     private final ListView<String> messages = new ListView<>();
     private final ListView<String> users = new ListView<>();
-
-    private final TextField messageInput = new TextField();
+    private final TextArea messageInput = new TextArea();
 
     private final Button sendButton = new Button("Send");
     private final Button backButton = new Button("Main menu");
 
     public ChatMenu() {
-
         setAlignment(Pos.CENTER);
-        setSpacing(15);
+        setSpacing(10);
 
-        Label title = new Label("Chat");
 
-        // Example online users
-        users.getItems().addAll(
-            "Player1",
-            "Player2",
-            "Player3"
-        );
+        Label usersLabel = new Label("Online users");
+        Label messagesLabel = new Label("Messages");
 
-        // Message input
-        messageInput.setPromptText("Write a message...");
-        messageInput.setPrefWidth(300);
+        users.setPrefSize(250, 400);
+        messages.setPrefSize(300, 400);
 
-        // Chat messages and online users
-        messages.setPrefSize(400, 300);
-        users.setPrefSize(150, 300);
+        usersLabel.setStyle("-fx-text-fill: white; -fx-font-size: 20px;");
+        messagesLabel.setStyle("-fx-text-fill: white; -fx-font-size: 20px;");
 
-        HBox chatArea = new HBox(10);
+        VBox usersArea = new VBox(5, usersLabel, users);
+        VBox messagesArea = new VBox(5, messagesLabel, messages);
+
+        HBox chatArea = new HBox(15, usersArea, messagesArea);
         chatArea.setAlignment(Pos.CENTER);
-        chatArea.getChildren().addAll(messages, users);
 
-        HBox inputArea = new HBox(10);
-        inputArea.setAlignment(Pos.CENTER);
-        inputArea.getChildren().addAll(messageInput, sendButton);
+        messageInput.setPromptText("Enter message here...");
+        messageInput.setPrefSize(565, 120);
+        messageInput.setWrapText(true);
 
-        getChildren().addAll(
-            title,
-            chatArea,
-            inputArea,
-            backButton
-        );
+        VBox buttons = new VBox(10, sendButton, backButton);
+        buttons.setAlignment(Pos.TOP_CENTER);
+
+        HBox inputArea = new HBox(10, messageInput, buttons);
+        inputArea.setAlignment(Pos.TOP_CENTER);
+
+        getChildren().addAll(chatArea, inputArea);
     }
 
     public ListView<String> getMessages() {
         return messages;
     }
 
-    public TextField getMessageInput() {
+    public TextArea getMessageInput() {
         return messageInput;
     }
 
@@ -71,5 +65,9 @@ public class ChatMenu extends VBox {
 
     public Button getBackButton() {
         return backButton;
+    }
+
+    public ListView<String> getUsers() {
+        return users;
     }
 }

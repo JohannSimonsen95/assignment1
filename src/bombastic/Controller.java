@@ -8,6 +8,7 @@ import bombastic.menu.chatmenu.ChatMenu;
 import java.io.File;
 
 import javafx.application.Platform;
+import javafx.scene.control.MenuItem;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
@@ -32,56 +33,72 @@ public class Controller {
         this.chatMenu = new ChatMenu();
         this.model = new Model();
 
+        mainMenu.backgroundProperty().bind(model.activeBackgroundProperty());
+        settingsMenu.backgroundProperty().bind(model.activeBackgroundProperty());
+        chatMenu.backgroundProperty().bind(model.activeBackgroundProperty());
+
         setupButtons();
         updateBackground();
     }
 
     private void setupButtons() {
 
-        // Start game
         mainMenu.getStartButton().setOnAction(event -> {
             stage.getScene().setRoot(new StackPane());
         });
 
-        // Open Chat menu
         mainMenu.getChatButton().setOnAction(event -> {
             stage.getScene().setRoot(chatMenu);
         });
 
-        // Open Settings menu
         mainMenu.getSettingsButton().setOnAction(event -> {
             stage.getScene().setRoot(settingsMenu);
         });
 
-        // Return from Settings to Main menu
         settingsMenu.getBackButton().setOnAction(event -> {
             stage.getScene().setRoot(mainMenu);
         });
 
-        // Return from Chat to Main menu
         chatMenu.getBackButton().setOnAction(event -> {
             stage.getScene().setRoot(mainMenu);
         });
 
-        // Change background
-        settingsMenu.getBackgroundBox().setOnAction(event -> {
-            model.setBackground(
-                settingsMenu.getBackgroundBox().getValue()
-            );
+        for (MenuItem item : settingsMenu.getBackgroundMenu().getItems()) {
+            item.setOnAction(event -> {
+                String selected = item.getText();
+                settingsMenu.getBackgroundMenu().setText(selected);
+                model.setBackground(selected);
+                updateBackground();
+            });
+        }
 
-            updateBackground();
+        for (MenuItem item : settingsMenu.getArenaMenu().getItems()) {
+            item.setOnAction(event -> {
+                String selected = item.getText();
+                settingsMenu.getArenaMenu().setText(selected);
+                model.setArena(selected);
+            });
+        }
+
+        chatMenu.getMessages().setItems(model.getChatMessages());
+        chatMenu.getUsers().setItems(model.getOnlineUsers());
+
+        chatMenu.getSendButton().setOnAction(event -> {
+            String message = chatMenu.getMessageInput().getText();
+
+            if (!message.isBlank()) {
+                model.getChatMessages().add(message);
+                chatMenu.getMessageInput().clear();
+            }
         });
 
-        // Change arena
-        settingsMenu.getArenaBox().setOnAction(event -> {
-            model.setArena(
-                settingsMenu.getArenaBox().getValue()
-            );
-
-            System.out.println("Arena: " + model.getArena());
+        chatMenu.getMessageInput().setOnKeyPressed(event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                chatMenu.getSendButton().fire();
+                event.consume();
+            }
         });
 
-        // Exit application
         mainMenu.getExitButton().setOnAction(event -> {
             Platform.exit();
         });
@@ -109,8 +126,6 @@ public class Controller {
 
         Background background = new Background(backgroundImage);
 
-        mainMenu.setBackground(background);
-        settingsMenu.setBackground(background);
-        chatMenu.setBackground(background);
+        model.setActiveBackground(background);
     }
 }
