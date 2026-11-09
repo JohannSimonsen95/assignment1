@@ -1,17 +1,21 @@
+
+import bombastic.Controller;
+import bombastic.menu.mainmenu.MainMenu;
+
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        Label label = new Label("Welcome to Bombastic!");
 
-        StackPane root = new StackPane(label);
-        Scene scene = new Scene(root, 800, 600);
+        MainMenu mainMenu = new MainMenu();
+
+        new Controller(stage, mainMenu);
+
+        Scene scene = new Scene(mainMenu, 800, 600);
 
         stage.setTitle("Bombastic");
         stage.setScene(scene);
