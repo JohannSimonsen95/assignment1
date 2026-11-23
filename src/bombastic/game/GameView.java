@@ -4,6 +4,9 @@ package bombastic.game;
 import java.io.File;
 
 import bombastic.game.entities.Bomb;
+import bombastic.game.entities.DestructibleWall;
+import bombastic.game.entities.Explosion;
+import bombastic.game.entities.powerups.PowerUp;
 
 import javafx.event.EventHandler;
 import javafx.scene.canvas.Canvas;
@@ -21,15 +24,13 @@ public class GameView extends StackPane {
         new Canvas(GameModel.WIDTH, GameModel.HEIGHT);
 
     private final Image grass = new Image(
-        new File("Assets/terrain/grass.png").toURI().toString()
+        new File("Assets/terrain/grass.png")
+            .toURI().toString()
     );
 
     private final Image wallImage = new Image(
-        new File("Assets/terrain/wall.png").toURI().toString()
-    );
-
-    private final Image crateImage = new Image(
-        new File("Assets/terrain/crate.png").toURI().toString()
+        new File("Assets/terrain/wall.png")
+            .toURI().toString()
     );
 
     public GameView(GameModel model) {
@@ -87,19 +88,48 @@ public class GameView extends StackPane {
                     gc.drawImage(
                         wallImage, x, y, tileSize, tileSize
                     );
-                } else if (model.getTile(row, col) == 2) {
-                    gc.drawImage(
-                        crateImage, x, y, tileSize, tileSize
-                    );
                 }
             }
+        }
+
+        for (DestructibleWall wall :
+                model.getDestructibleWalls()) {
+            wall.render(gc);
+        }
+
+        for (PowerUp powerUp : model.getPowerUps()) {
+            powerUp.render(gc);
         }
 
         for (Bomb bomb : model.getBombs()) {
             bomb.render(gc);
         }
 
+        for (Explosion explosion : model.getExplosions()) {
+            explosion.render(gc);
+        }
+
         model.getPlayer1().render(gc);
         model.getPlayer2().render(gc);
+
+        gc.setFill(Color.WHITE);
+
+        gc.fillText(
+            "Player 1 Lives: " + model.getPlayer1().getLives(),
+            20, 30
+        );
+
+        gc.fillText(
+            "Player 2 Lives: " + model.getPlayer2().getLives(),
+            650, 30
+        );
+
+        if (model.isGameOver()) {
+            gc.setFill(Color.YELLOW);
+            gc.fillText(model.getWinner(), 350, 50);
+
+            gc.setFill(Color.WHITE);
+            gc.fillText("Press R to restart", 350, 70);
+        }
     }
 }

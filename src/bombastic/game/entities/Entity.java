@@ -1,3 +1,4 @@
+
 package bombastic.game.entities;
 
 import javafx.scene.canvas.GraphicsContext;

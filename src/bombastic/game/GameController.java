@@ -4,6 +4,7 @@ package bombastic.game;
 import bombastic.game.entities.Player;
 
 import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
@@ -13,6 +14,8 @@ public class GameController {
     private final GameView view;
     private final AnimationTimer gameLoop;
 
+    private Runnable restartAction;
+
     public GameController(GameModel model, GameView view) {
         this.model = model;
         this.view = view;
@@ -21,7 +24,6 @@ public class GameController {
         view.setGameKeyReleased(event -> handleKeyReleased(event));
 
         gameLoop = new AnimationTimer() {
-
             private long lastTime = 0;
 
             @Override
@@ -31,9 +33,7 @@ public class GameController {
                     return;
                 }
 
-                double dt =
-                    (now - lastTime) / 1_000_000_000.0;
-
+                double dt = (now - lastTime) / 1_000_000_000.0;
                 lastTime = now;
 
                 model.update(dt);
@@ -42,11 +42,22 @@ public class GameController {
         };
     }
 
+    public void setRestartAction(Runnable action) {
+        restartAction = action;
+    }
+
     private void handleKeyPressed(KeyEvent event) {
+        KeyCode key = event.getCode();
+
+        if (model.isGameOver()) {
+            if (key == KeyCode.R && restartAction != null) {
+                restartAction.run();
+            }
+            return;
+        }
+
         Player player1 = model.getPlayer1();
         Player player2 = model.getPlayer2();
-
-        KeyCode key = event.getCode();
 
         if (key == KeyCode.W) {
             player1.setUp(true);
@@ -101,11 +112,12 @@ public class GameController {
     }
 
     public void start() {
-        view.requestGameFocus();
         gameLoop.start();
+        Platform.runLater(() -> view.requestGameFocus());
     }
 
     public void stop() {
         gameLoop.stop();
+        model.shutdown();
     }
 }

@@ -44,7 +44,13 @@ public class Controller {
             stage.getScene().setRoot(settingsMenu)
         );
 
-        mainMenu.setOnExit(() -> Platform.exit());
+        mainMenu.setOnExit(() -> {
+            if (gameController != null) {
+                gameController.stop();
+            }
+
+            Platform.exit();
+        });
 
         settingsMenu.setOnBack(() ->
             stage.getScene().setRoot(mainMenu)
@@ -70,6 +76,8 @@ public class Controller {
         gameController = new GameController(
             gameModel, gameView
         );
+
+        gameController.setRestartAction(() -> startGame());
 
         stage.getScene().setRoot(gameView);
         gameController.start();
