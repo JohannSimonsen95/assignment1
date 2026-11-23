@@ -6,8 +6,8 @@ import bombastic.menu.settingsmenu.SettingsMenu;
 import bombastic.menu.chatmenu.ChatMenu;
 
 import javafx.application.Platform;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import bombastic.game.GameView;
 
 public class Controller {
 
@@ -30,7 +30,7 @@ public class Controller {
     private void setupActions() {
 
         mainMenu.setOnStart(() -> {
-            stage.getScene().setRoot(new StackPane());
+            stage.getScene().setRoot(new GameView());
         });
 
         mainMenu.setOnChat(() -> {

@@ -77,7 +77,7 @@ public class Model {
 
     private void updateBackground() {
         String path = new File(
-            "Assets/" + background.get()
+            "Assets/backgrounds/" + background.get()
         ).toURI().toString();
 
         Image image = new Image(path);
