@@ -3,19 +3,20 @@ package bombastic.game;
 
 import java.io.File;
 
+import javafx.event.EventHandler;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
 public class GameView extends StackPane {
 
-    private final int TILE_SIZE = 40;
-    private final int COLUMNS = 15;
-    private final int ROWS = 11;
+    private final GameModel model;
 
-    private final Canvas canvas = new Canvas(800, 600);
+    private final Canvas canvas =
+        new Canvas(GameModel.WIDTH, GameModel.HEIGHT);
 
     private final Image grass = new Image(
         new File("Assets/terrain/grass.png").toURI().toString()
@@ -29,47 +30,70 @@ public class GameView extends StackPane {
         new File("Assets/terrain/crate.png").toURI().toString()
     );
 
-    public GameView() {
+    public GameView(GameModel model) {
+        this.model = model;
+
         getChildren().add(canvas);
         canvas.setFocusTraversable(true);
 
-        drawArena();
+        render();
     }
 
-    private void drawArena() {
+    public void setGameKeyPressed(EventHandler<KeyEvent> action) {
+        canvas.setOnKeyPressed(action);
+    }
+
+    public void setGameKeyReleased(EventHandler<KeyEvent> action) {
+        canvas.setOnKeyReleased(action);
+    }
+
+    public void requestGameFocus() {
+        canvas.requestFocus();
+    }
+
+    public void render() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        double offsetX = (canvas.getWidth() - COLUMNS * TILE_SIZE) / 2;
-        double offsetY = (canvas.getHeight() - ROWS * TILE_SIZE) / 2;
+        int tileSize = GameModel.TILE_SIZE;
+        int columns = GameModel.COLUMNS;
+        int rows = GameModel.ROWS;
+
+        double offsetX =
+            (canvas.getWidth() - columns * tileSize) / 2;
+
+        double offsetY =
+            (canvas.getHeight() - rows * tileSize) / 2;
 
         gc.setFill(Color.DARKGREEN);
-        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        gc.fillRect(
+            0, 0,
+            canvas.getWidth(),
+            canvas.getHeight()
+        );
 
-        for (int row = 0; row < ROWS; row++) {
-            for (int col = 0; col < COLUMNS; col++) {
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < columns; col++) {
 
-                double x = offsetX + col * TILE_SIZE;
-                double y = offsetY + row * TILE_SIZE;
+                double x = offsetX + col * tileSize;
+                double y = offsetY + row * tileSize;
 
-                boolean wall =
-                    row == 0 ||
-                    row == ROWS - 1 ||
-                    col == 0 ||
-                    col == COLUMNS - 1 ||
-                    (row % 2 == 0 && col % 2 == 0);
+                gc.drawImage(
+                    grass, x, y, tileSize, tileSize
+                );
 
-                boolean crate =
-                    !wall &&
-                    (row + col) % 3 == 0;
-
-                gc.drawImage(grass, x, y, TILE_SIZE, TILE_SIZE);
-
-                if (wall) {
-                    gc.drawImage(wallImage, x, y, TILE_SIZE, TILE_SIZE);
-                } else if (crate) {
-                    gc.drawImage(crateImage, x, y, TILE_SIZE, TILE_SIZE);
+                if (model.getTile(row, col) == 1) {
+                    gc.drawImage(
+                        wallImage, x, y, tileSize, tileSize
+                    );
+                } else if (model.getTile(row, col) == 2) {
+                    gc.drawImage(
+                        crateImage, x, y, tileSize, tileSize
+                    );
                 }
             }
         }
+
+        model.getPlayer1().render(gc);
+        model.getPlayer2().render(gc);
     }
 }

@@ -1,13 +1,16 @@
 
 package bombastic;
 
+import bombastic.game.GameModel;
+import bombastic.game.GameView;
+import bombastic.game.GameController;
+
 import bombastic.menu.mainmenu.MainMenu;
 import bombastic.menu.settingsmenu.SettingsMenu;
 import bombastic.menu.chatmenu.ChatMenu;
 
 import javafx.application.Platform;
 import javafx.stage.Stage;
-import bombastic.game.GameView;
 
 public class Controller {
 
@@ -17,44 +20,58 @@ public class Controller {
     private final ChatMenu chatMenu;
     private final Model model;
 
+    private GameController gameController;
+
     public Controller(Stage stage, Model model, MainMenu mainMenu) {
         this.stage = stage;
         this.model = model;
         this.mainMenu = mainMenu;
-        this.settingsMenu = new SettingsMenu(model);
-        this.chatMenu = new ChatMenu(model);
+
+        settingsMenu = new SettingsMenu(model);
+        chatMenu = new ChatMenu(model);
 
         setupActions();
     }
 
     private void setupActions() {
+        mainMenu.setOnStart(() -> startGame());
 
-        mainMenu.setOnStart(() -> {
-            stage.getScene().setRoot(new GameView());
-        });
+        mainMenu.setOnChat(() ->
+            stage.getScene().setRoot(chatMenu)
+        );
 
-        mainMenu.setOnChat(() -> {
-            stage.getScene().setRoot(chatMenu);
-        });
+        mainMenu.setOnSettings(() ->
+            stage.getScene().setRoot(settingsMenu)
+        );
 
-        mainMenu.setOnSettings(() -> {
-            stage.getScene().setRoot(settingsMenu);
-        });
+        mainMenu.setOnExit(() -> Platform.exit());
 
-        mainMenu.setOnExit(() -> {
-            Platform.exit();
-        });
+        settingsMenu.setOnBack(() ->
+            stage.getScene().setRoot(mainMenu)
+        );
 
-        settingsMenu.setOnBack(() -> {
-            stage.getScene().setRoot(mainMenu);
-        });
+        chatMenu.setOnBack(() ->
+            stage.getScene().setRoot(mainMenu)
+        );
 
-        chatMenu.setOnBack(() -> {
-            stage.getScene().setRoot(mainMenu);
-        });
+        chatMenu.setOnSend(message ->
+            model.sendMessage(message)
+        );
+    }
 
-        chatMenu.setOnSend(message -> {
-            model.sendMessage(message);
-        });
+    private void startGame() {
+        if (gameController != null) {
+            gameController.stop();
+        }
+
+        GameModel gameModel = new GameModel();
+        GameView gameView = new GameView(gameModel);
+
+        gameController = new GameController(
+            gameModel, gameView
+        );
+
+        stage.getScene().setRoot(gameView);
+        gameController.start();
     }
 }
