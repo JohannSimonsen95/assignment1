@@ -1,5 +1,6 @@
 
 import bombastic.Controller;
+import bombastic.Model;
 import bombastic.menu.mainmenu.MainMenu;
 
 import javafx.application.Application;
@@ -11,9 +12,10 @@ public class App extends Application {
     @Override
     public void start(Stage stage) {
 
-        MainMenu mainMenu = new MainMenu();
+        Model model = new Model();
+        MainMenu mainMenu = new MainMenu(model);
 
-        new Controller(stage, mainMenu);
+        new Controller(stage, model, mainMenu);
 
         Scene scene = new Scene(mainMenu, 800, 600);
 

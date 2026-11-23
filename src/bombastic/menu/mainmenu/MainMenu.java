@@ -1,6 +1,8 @@
 
 package bombastic.menu.mainmenu;
 
+import bombastic.Model;
+
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
@@ -12,7 +14,9 @@ public class MainMenu extends VBox {
     private final Button settingsButton = new Button("Settings");
     private final Button exitButton = new Button("Exit");
 
-    public MainMenu() {
+    public MainMenu(Model model) {
+        backgroundProperty().bind(model.activeBackgroundProperty());
+
         setAlignment(Pos.CENTER);
         setSpacing(15);
 
@@ -29,19 +33,19 @@ public class MainMenu extends VBox {
         );
     }
 
-    public Button getStartButton() {
-        return startButton;
+    public void setOnStart(Runnable action) {
+        startButton.setOnAction(event -> action.run());
     }
 
-    public Button getChatButton() {
-        return chatButton;
+    public void setOnChat(Runnable action) {
+        chatButton.setOnAction(event -> action.run());
     }
 
-    public Button getSettingsButton() {
-        return settingsButton;
+    public void setOnSettings(Runnable action) {
+        settingsButton.setOnAction(event -> action.run());
     }
 
-    public Button getExitButton() {
-        return exitButton;
+    public void setOnExit(Runnable action) {
+        exitButton.setOnAction(event -> action.run());
     }
 }

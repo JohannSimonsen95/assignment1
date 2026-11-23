@@ -1,6 +1,8 @@
 
 package bombastic.menu.settingsmenu;
 
+import bombastic.Model;
+
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -10,11 +12,13 @@ import javafx.scene.layout.VBox;
 
 public class SettingsMenu extends VBox {
 
-    private final MenuButton backgroundMenu = new MenuButton("bg1.png");
-    private final MenuButton arenaMenu = new MenuButton("Arena 1");
+    private final MenuButton backgroundMenu = new MenuButton();
+    private final MenuButton arenaMenu = new MenuButton();
     private final Button backButton = new Button("Main menu");
 
-    public SettingsMenu() {
+    public SettingsMenu(Model model) {
+        backgroundProperty().bind(model.activeBackgroundProperty());
+
         setAlignment(Pos.CENTER);
         setSpacing(15);
 
@@ -26,11 +30,26 @@ public class SettingsMenu extends VBox {
 
         backgroundMenu.getItems().addAll(bg1, bg2, bg3);
 
+        for (MenuItem item : backgroundMenu.getItems()) {
+            item.setOnAction(event -> {
+                model.setBackground(item.getText());
+            });
+        }
+
         MenuItem arena1 = new MenuItem("Arena 1");
         MenuItem arena2 = new MenuItem("Arena 2");
         MenuItem arena3 = new MenuItem("Arena 3");
 
         arenaMenu.getItems().addAll(arena1, arena2, arena3);
+
+        for (MenuItem item : arenaMenu.getItems()) {
+            item.setOnAction(event -> {
+                model.setArena(item.getText());
+            });
+        }
+
+        backgroundMenu.textProperty().bind(model.backgroundProperty());
+        arenaMenu.textProperty().bind(model.arenaProperty());
 
         backgroundMenu.setPrefWidth(200);
         arenaMenu.setPrefWidth(200);
@@ -46,15 +65,7 @@ public class SettingsMenu extends VBox {
         );
     }
 
-    public MenuButton getBackgroundMenu() {
-        return backgroundMenu;
-    }
-
-    public MenuButton getArenaMenu() {
-        return arenaMenu;
-    }
-
-    public Button getBackButton() {
-        return backButton;
+    public void setOnBack(Runnable action) {
+        backButton.setOnAction(event -> action.run());
     }
 }

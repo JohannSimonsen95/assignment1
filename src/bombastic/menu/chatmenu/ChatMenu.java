@@ -1,11 +1,16 @@
 
 package bombastic.menu.chatmenu;
 
+import bombastic.Model;
+
+import java.util.function.Consumer;
+
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -18,10 +23,14 @@ public class ChatMenu extends VBox {
     private final Button sendButton = new Button("Send");
     private final Button backButton = new Button("Main menu");
 
-    public ChatMenu() {
+    public ChatMenu(Model model) {
+        backgroundProperty().bind(model.activeBackgroundProperty());
+
+        messages.setItems(model.getChatMessages());
+        users.setItems(model.getOnlineUsers());
+
         setAlignment(Pos.CENTER);
         setSpacing(10);
-
 
         Label usersLabel = new Label("Online users");
         Label messagesLabel = new Label("Messages");
@@ -51,23 +60,25 @@ public class ChatMenu extends VBox {
         getChildren().addAll(chatArea, inputArea);
     }
 
-    public ListView<String> getMessages() {
-        return messages;
+    public void setOnSend(Consumer<String> action) {
+        sendButton.setOnAction(event -> {
+            String message = messageInput.getText();
+
+            if (!message.isBlank()) {
+                action.accept(message);
+                messageInput.clear();
+            }
+        });
+
+        messageInput.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                sendButton.fire();
+                event.consume();
+            }
+        });
     }
 
-    public TextArea getMessageInput() {
-        return messageInput;
-    }
-
-    public Button getSendButton() {
-        return sendButton;
-    }
-
-    public Button getBackButton() {
-        return backButton;
-    }
-
-    public ListView<String> getUsers() {
-        return users;
+    public void setOnBack(Runnable action) {
+        backButton.setOnAction(event -> action.run());
     }
 }
