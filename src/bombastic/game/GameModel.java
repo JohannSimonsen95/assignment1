@@ -3,7 +3,10 @@ package bombastic.game;
 
 import bombastic.game.entities.Bomb;
 import bombastic.game.entities.DestructibleWall;
+import bombastic.game.entities.Entity;
 import bombastic.game.entities.Explosion;
+import bombastic.game.entities.Floor;
+import bombastic.game.entities.IndestructibleWall;
 import bombastic.game.entities.Player;
 import bombastic.game.entities.powerups.Capacity;
 import bombastic.game.entities.powerups.Life;
@@ -22,6 +25,10 @@ public class GameModel {
     public static final int HEIGHT = 600;
 
     private final int[][] arena = new int[ROWS][COLUMNS];
+
+    private final ArrayList<Entity> floors = new ArrayList<>();
+    private final ArrayList<Entity> indestructibleWalls =
+        new ArrayList<>();
 
     private final Player player1 = new Player(
         140, 120, TILE_SIZE, "blue_down_0.png"
@@ -51,9 +58,22 @@ public class GameModel {
         createArena();
     }
 
+    private double offsetX() {
+        return (WIDTH - COLUMNS * TILE_SIZE) / 2.0;
+    }
+
+    private double offsetY() {
+        return (HEIGHT - ROWS * TILE_SIZE) / 2.0;
+    }
+
     private void createArena() {
         for (int row = 0; row < ROWS; row++) {
             for (int col = 0; col < COLUMNS; col++) {
+
+                double x = offsetX() + col * TILE_SIZE;
+                double y = offsetY() + row * TILE_SIZE;
+
+                floors.add(new Floor(x, y, TILE_SIZE));
 
                 boolean wall =
                     row == 0 ||
@@ -76,15 +96,15 @@ public class GameModel {
 
                 if (wall) {
                     arena[row][col] = 1;
+
+                    indestructibleWalls.add(
+                        new IndestructibleWall(x, y, TILE_SIZE)
+                    );
                 } else if (crate) {
                     arena[row][col] = 2;
 
                     destructibleWalls.add(
-                        new DestructibleWall(
-                            offsetX() + col * TILE_SIZE,
-                            offsetY() + row * TILE_SIZE,
-                            TILE_SIZE
-                        )
+                        new DestructibleWall(x, y, TILE_SIZE)
                     );
                 } else {
                     arena[row][col] = 0;
@@ -95,6 +115,14 @@ public class GameModel {
 
     public int getTile(int row, int col) {
         return arena[row][col];
+    }
+
+    public ArrayList<Entity> getFloors() {
+        return floors;
+    }
+
+    public ArrayList<Entity> getIndestructibleWalls() {
+        return indestructibleWalls;
     }
 
     public Player getPlayer1() {
@@ -139,14 +167,6 @@ public class GameModel {
         }
 
         return "PLAYER 1 WINS!";
-    }
-
-    private double offsetX() {
-        return (WIDTH - COLUMNS * TILE_SIZE) / 2.0;
-    }
-
-    private double offsetY() {
-        return (HEIGHT - ROWS * TILE_SIZE) / 2.0;
     }
 
     public void placeBomb(Player player) {
@@ -305,7 +325,9 @@ public class GameModel {
 
     private void spreadExplosion(
         int row, int col, int dr, int dc,
-        int range, int groupId
+        int range, int groupId,
+        int[][] explosionArena,
+        boolean[][] destroyedCrates
     ) {
         for (int distance = 1; distance <= range; distance++) {
             int nextRow = row + dr * distance;
@@ -316,7 +338,7 @@ public class GameModel {
                 break;
             }
 
-            int tile = arena[nextRow][nextCol];
+            int tile = explosionArena[nextRow][nextCol];
 
             if (tile == 1) {
                 break;
@@ -325,27 +347,17 @@ public class GameModel {
             addExplosion(nextRow, nextCol, groupId);
 
             if (tile == 2) {
-                double x = offsetX() + nextCol * TILE_SIZE;
-                double y = offsetY() + nextRow * TILE_SIZE;
-
-                Explosion explosion =
-                    explosions.get(explosions.size() - 1);
-
-                for (DestructibleWall wall : destructibleWalls) {
-                    if (wall.getX() == x && wall.getY() == y) {
-                        wall.interact(explosion);
-                        break;
-                    }
-                }
-
-                arena[nextRow][nextCol] = 0;
-                spawnPowerUp(nextRow, nextCol);
+                destroyedCrates[nextRow][nextCol] = true;
                 break;
             }
         }
     }
 
-    private void detonateBomb(Bomb bomb) {
+    private void detonateBomb(
+        Bomb bomb,
+        int[][] explosionArena,
+        boolean[][] destroyedCrates
+    ) {
         int col = (int) Math.floor(
             (bomb.getX() - offsetX()) / TILE_SIZE
         );
@@ -359,10 +371,60 @@ public class GameModel {
 
         addExplosion(row, col, groupId);
 
-        spreadExplosion(row, col, -1, 0, range, groupId);
-        spreadExplosion(row, col, 1, 0, range, groupId);
-        spreadExplosion(row, col, 0, -1, range, groupId);
-        spreadExplosion(row, col, 0, 1, range, groupId);
+        spreadExplosion(
+            row, col, -1, 0, range, groupId,
+            explosionArena, destroyedCrates
+        );
+
+        spreadExplosion(
+            row, col, 1, 0, range, groupId,
+            explosionArena, destroyedCrates
+        );
+
+        spreadExplosion(
+            row, col, 0, -1, range, groupId,
+            explosionArena, destroyedCrates
+        );
+
+        spreadExplosion(
+            row, col, 0, 1, range, groupId,
+            explosionArena, destroyedCrates
+        );
+    }
+
+    private void removeDestroyedCrates(boolean[][] destroyedCrates) {
+        for (int row = 0; row < ROWS; row++) {
+            for (int col = 0; col < COLUMNS; col++) {
+                if (!destroyedCrates[row][col]) {
+                    continue;
+                }
+
+                double x = offsetX() + col * TILE_SIZE;
+                double y = offsetY() + row * TILE_SIZE;
+
+                for (DestructibleWall wall : destructibleWalls) {
+                    if (wall.getX() == x && wall.getY() == y) {
+                        for (Explosion explosion : explosions) {
+                            if (explosion.getX() == x &&
+                                explosion.getY() == y) {
+                                wall.interact(explosion);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                arena[row][col] = 0;
+                spawnPowerUp(row, col);
+            }
+        }
+
+        for (int i = destructibleWalls.size() - 1; i >= 0; i--) {
+            if (destructibleWalls.get(i).isDestroyed()) {
+                destructibleWalls.remove(i);
+            }
+        }
     }
 
     private boolean overlaps(
@@ -455,6 +517,15 @@ public class GameModel {
             bomb.update(elapsed);
         }
 
+        int[][] explosionArena = new int[ROWS][COLUMNS];
+
+        for (int row = 0; row < ROWS; row++) {
+            explosionArena[row] = arena[row].clone();
+        }
+
+        boolean[][] destroyedCrates =
+            new boolean[ROWS][COLUMNS];
+
         boolean foundExplosion = true;
 
         while (foundExplosion) {
@@ -465,18 +536,20 @@ public class GameModel {
 
                 if (bomb.isExploded()) {
                     bombs.remove(i);
-                    detonateBomb(bomb);
+
+                    detonateBomb(
+                        bomb,
+                        explosionArena,
+                        destroyedCrates
+                    );
+
                     foundExplosion = true;
                     break;
                 }
             }
         }
 
-        for (int i = destructibleWalls.size() - 1; i >= 0; i--) {
-            if (destructibleWalls.get(i).isDestroyed()) {
-                destructibleWalls.remove(i);
-            }
-        }
+        removeDestroyedCrates(destroyedCrates);
 
         damagePlayer(player1);
         damagePlayer(player2);

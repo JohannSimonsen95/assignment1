@@ -16,6 +16,9 @@ public class GameController {
 
     private Runnable restartAction;
 
+    private boolean player1BombHeld = false;
+    private boolean player2BombHeld = false;
+
     public GameController(GameModel model, GameView view) {
         this.model = model;
         this.view = view;
@@ -67,7 +70,8 @@ public class GameController {
             player1.setLeft(true);
         } else if (key == KeyCode.D) {
             player1.setRight(true);
-        } else if (key == KeyCode.SPACE) {
+        } else if (key == KeyCode.SPACE && !player1BombHeld) {
+            player1BombHeld = true;
             model.placeBomb(player1);
         }
 
@@ -79,7 +83,8 @@ public class GameController {
             player2.setLeft(true);
         } else if (key == KeyCode.L) {
             player2.setRight(true);
-        } else if (key == KeyCode.ENTER) {
+        } else if (key == KeyCode.ENTER && !player2BombHeld) {
+            player2BombHeld = true;
             model.placeBomb(player2);
         }
     }
@@ -98,6 +103,8 @@ public class GameController {
             player1.setLeft(false);
         } else if (key == KeyCode.D) {
             player1.setRight(false);
+        } else if (key == KeyCode.SPACE) {
+            player1BombHeld = false;
         }
 
         if (key == KeyCode.I) {
@@ -108,6 +115,8 @@ public class GameController {
             player2.setLeft(false);
         } else if (key == KeyCode.L) {
             player2.setRight(false);
+        } else if (key == KeyCode.ENTER) {
+            player2BombHeld = false;
         }
     }
 

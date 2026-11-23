@@ -1,17 +1,15 @@
 
 package bombastic.game;
 
-import java.io.File;
-
 import bombastic.game.entities.Bomb;
 import bombastic.game.entities.DestructibleWall;
+import bombastic.game.entities.Entity;
 import bombastic.game.entities.Explosion;
 import bombastic.game.entities.powerups.PowerUp;
 
 import javafx.event.EventHandler;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -22,16 +20,6 @@ public class GameView extends StackPane {
 
     private final Canvas canvas =
         new Canvas(GameModel.WIDTH, GameModel.HEIGHT);
-
-    private final Image grass = new Image(
-        new File("Assets/terrain/grass.png")
-            .toURI().toString()
-    );
-
-    private final Image wallImage = new Image(
-        new File("Assets/terrain/wall.png")
-            .toURI().toString()
-    );
 
     public GameView(GameModel model) {
         this.model = model;
@@ -57,16 +45,6 @@ public class GameView extends StackPane {
     public void render() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        int tileSize = GameModel.TILE_SIZE;
-        int columns = GameModel.COLUMNS;
-        int rows = GameModel.ROWS;
-
-        double offsetX =
-            (canvas.getWidth() - columns * tileSize) / 2;
-
-        double offsetY =
-            (canvas.getHeight() - rows * tileSize) / 2;
-
         gc.setFill(Color.DARKGREEN);
         gc.fillRect(
             0, 0,
@@ -74,22 +52,12 @@ public class GameView extends StackPane {
             canvas.getHeight()
         );
 
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < columns; col++) {
+        for (Entity floor : model.getFloors()) {
+            floor.render(gc);
+        }
 
-                double x = offsetX + col * tileSize;
-                double y = offsetY + row * tileSize;
-
-                gc.drawImage(
-                    grass, x, y, tileSize, tileSize
-                );
-
-                if (model.getTile(row, col) == 1) {
-                    gc.drawImage(
-                        wallImage, x, y, tileSize, tileSize
-                    );
-                }
-            }
+        for (Entity wall : model.getIndestructibleWalls()) {
+            wall.render(gc);
         }
 
         for (DestructibleWall wall :
