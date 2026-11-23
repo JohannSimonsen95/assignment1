@@ -56,6 +56,8 @@ public class GameController {
             player1.setLeft(true);
         } else if (key == KeyCode.D) {
             player1.setRight(true);
+        } else if (key == KeyCode.SPACE) {
+            model.placeBomb(player1);
         }
 
         if (key == KeyCode.I) {
@@ -66,6 +68,8 @@ public class GameController {
             player2.setLeft(true);
         } else if (key == KeyCode.L) {
             player2.setRight(true);
+        } else if (key == KeyCode.ENTER) {
+            model.placeBomb(player2);
         }
     }
 

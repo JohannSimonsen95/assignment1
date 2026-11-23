@@ -3,6 +3,8 @@ package bombastic.game;
 
 import java.io.File;
 
+import bombastic.game.entities.Bomb;
+
 import javafx.event.EventHandler;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -91,6 +93,10 @@ public class GameView extends StackPane {
                     );
                 }
             }
+        }
+
+        for (Bomb bomb : model.getBombs()) {
+            bomb.render(gc);
         }
 
         model.getPlayer1().render(gc);
